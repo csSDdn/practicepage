@@ -1,0 +1,78 @@
+CREATE TABLE user
+(
+id INT  PRIMARY KEY COMMENT '用户编号',
+username VARCHAR(20)   COMMENT  '账户',
+password VARCHAR(20) COMMENT  '密码',
+right CHAR(11) COMMENT  '权限'
+) COMMENT ='客户'
+
+drop TABLE LP;
+CREATE TABLE LP
+(
+lno VARCHAR(20) PRIMARY KEY COMMENT '楼盘编号',
+lc VARCHAR(20) COMMENT '楼盘名称',
+status boolean COMMENT '楼盘状态'
+) COMMENT ='楼盘'
+
+CREATE TABLE HX
+(
+hno VARCHAR(20) PRIMARY KEY COMMENT '户型编号',
+pic VARCHAR(20) COMMENT '户型图',
+price  int(6) COMMENT '户型价格',
+area   int(5) COMMENT '户型面积'
+) COMMENT ='户型'
+
+CREATE TABLE FC
+(
+fno VARCHAR(20)  COMMENT '房产编号',
+lno VARCHAR(20)  COMMENT '楼盘编号',
+hno VARCHAR(20) COMMENT '户型编号',
+lx  VARCHAR(20) COMMENT '户产类型',
+location VARCHAR(10) COMMENT '阳台方向',
+FOREIGN KEY(lno) REFERENCES LP(lno),
+FOREIGN KEY(hno) REFERENCES HX(hno),
+PRIMARY KEY(fno,lno,hno)
+) COMMENT ='房产'
+
+
+
+CREATE TABLE appoint
+(
+uno VARCHAR(20)  COMMENT '客户账户',
+fno VARCHAR(20) COMMENT '房产编号',
+time TIMESTAMP  COMMENT  '预定时间',
+PSW VARCHAR(20) COMMENT  '预定时长',
+FOREIGN KEY(uno) REFERENCES user(ZH),
+FOREIGN KEY(fno) REFERENCES FC(fno),
+PRIMARY KEY(uno,fno)
+) COMMENT ='预定'
+
+
+
+SELECT * FROM fc WHERE NOT EXISTS 
+create VIEW c AS SELECT fc.*,hx.area,hx.price FROM fc,hx WHERE fc.hno=hx.hno
+CREATE VIEW a as SELECT c.*,lp.`status` FROM c,hx,lp WHERE c.hno=hx.hno AND c.lno=lp.lno
+CREATE VIEW b as SELECT a.*,appoint.`status`as gmstatus FROM a LEFT OUTER JOIN appoint ON a.fno=appoint.fno
+
+SELECT * FROM (
+SELECT * FROM b WHERE b.`status`=1
+) k WHERE k.gmstatus !=1 OR k.gmstatus is NULL
+
+SELECT * FROM b WHERE b.gmstatus =1 and b.status=1
+
+CREATE   index  fc_index ON fc(hno ASC)
+
+CREATE   index  fc_index1 ON fc(lno ASC)
+
+CREATE INDEX appoint_index ON appoint(time)
+
+SELECT * FROM
+            (SELECT c.* FROM c,lp WHERE c.lno=lp.lno AND lp.`status`=TRUE) a
+             WHERE not EXISTS (
+            SELECT * from appoint WHERE appoint.fno=a.fno
+            ) 
+
+
+
+
+
